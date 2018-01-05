@@ -1,0 +1,6 @@
+company_id,first_name,middle_name,last_name,gender,date_of_birth,place_of_birth,national_number,nationality,municipality,zip_code,street_name,number
+1,"Milan","","van der Meer","male","1993-10-16","Leuven",931016157280,"Belg","Vlaams-Brabant","3010","Onze-Toevluchtstraat","16"
+1,"test","test","test","male","1990-05-01","Leuven",222,"Belg","Vlaams-Brabant","3010","test","16"
+1,"test","test","test","male","1990-05-01","Leuven",333,"Belg","Vlaams-Brabant","3010","test","16"
+1,"test","test","test","male","1990-05-01","Leuven",444,"Belg","Vlaams-Brabant","3010","test","16"
+1,"test","test","test","male","1990-05-01","Leuven",555,"Belg","Vlaams-Brabant","3010","test","16"
