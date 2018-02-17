@@ -26,7 +26,7 @@ object CustomTypes {
     }
   }
 
-  val DateType = ScalarType[LocalDate](
+  implicit val DateType = ScalarType[LocalDate](
     "Date",
     coerceOutput = (date, _) => dateToString(date),
     coerceUserInput = {

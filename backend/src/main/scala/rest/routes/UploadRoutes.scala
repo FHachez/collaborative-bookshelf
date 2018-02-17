@@ -11,7 +11,7 @@ import resources.ResourceHandler
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Failure, Success }
 
-class UploadRoutes(companyID: Long)(implicit system: ActorSystem, materializer: ActorMaterializer) extends Directives {
+class UploadRoutes()(implicit system: ActorSystem, materializer: ActorMaterializer) extends Directives {
 
   val uploadRoutes: Route =
     pathPrefix("upload") {
@@ -20,7 +20,7 @@ class UploadRoutes(companyID: Long)(implicit system: ActorSystem, materializer: 
         case (metadata, byteSource) =>
 
           onComplete(
-            ResourceHandler.getEidPath(companyID, metadata.fileName).map { path =>
+            ResourceHandler.getEidPath(metadata.fileName).map { path =>
               byteSource
                 .runWith(
                   FileIO.toPath(path))

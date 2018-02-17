@@ -9,8 +9,8 @@ import java.time.LocalDateTime
 
 import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
-import types.security.authentication.{ Account, User }
-import types.security.authentication.Account.a
+import security.types.{ Account, User }
+import security.types.Account.a
 
 object AuthenticationHandler extends LazyLogging {
 
@@ -32,13 +32,13 @@ object AuthenticationHandler extends LazyLogging {
         query.map(Account(_)).first.apply)
 
       result match {
-        case Some(Account(name, companyID, password, salt)) =>
+        case Some(Account(name, password, salt)) =>
           val hashedPassword = passwordToCheck.bcrypt(salt)
 
           if (hashedPassword == password) {
             val expiryDate = LocalDateTime.now().plusDays(daysUntilExpiry).toString
 
-            Some(User(name, companyID, expiryDate, BASIC_ROLE))
+            Some(User(name, expiryDate, BASIC_ROLE))
           } else {
             None
           }
@@ -49,7 +49,7 @@ object AuthenticationHandler extends LazyLogging {
     }
   }
 
-  def createUser(username: String, companyID: Long, password: String): Future[_] = {
+  def createUser(username: String, password: String): Future[_] = {
 
     Future {
       val salt = generateSalt
@@ -57,8 +57,8 @@ object AuthenticationHandler extends LazyLogging {
 
       val query =
         sql"""
-        INSERT INTO accounts (username, company_id, password, salt)
-        VALUES ($username, $companyID, $hashedPassword, $salt)
+        INSERT INTO accounts (username, password, salt)
+        VALUES ($username, $hashedPassword, $salt)
         """
 
       DB localTx { implicit session =>

@@ -1,11 +1,20 @@
 package graphql
 
 import com.typesafe.scalalogging.LazyLogging
-import org.scalatest.{AsyncFlatSpec, Matchers}
+import database.Database
+import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
 import sangria.parser.QueryParser
 import spray.json.{JsObject, JsString, JsonParser}
 
-class ClientResolverSpec extends AsyncFlatSpec with Matchers with LazyLogging {
+class BookResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll with LazyLogging {
+
+  override def beforeAll {
+    Database.init
+  }
+
+  override def afterAll {
+    Database.stop
+  }
 
   behavior of "ClientResolver"
 
@@ -28,9 +37,7 @@ class ClientResolverSpec extends AsyncFlatSpec with Matchers with LazyLogging {
         |     }
         |   }",
         |	"variables": {
-        |    "firstName": "Milan", "lastName": "van der Meer", "gender": "M", "dateOfBirth": "1993-10-16",
-        |    "placeOfBirth": "Leuven", "nationalNumber": "test", "nationality": "Belg",
-        |    "municipality": "Vlaams-Brabant", "zipCode": "3200", "streetName": "Elisabethlaan", "number": "3/1"
+        |
         | },
         |	"operationName": "root"
         |}""".stripMargin.replaceAll("\n", "").replaceAll("\\s+", " ")

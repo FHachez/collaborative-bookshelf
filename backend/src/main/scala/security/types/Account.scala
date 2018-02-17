@@ -1,8 +1,8 @@
-package types.security.authentication
+package security.types
 
 import scalikejdbc._
 
-case class Account(username: String, companyID: Long, password: String, salt: String)
+case class Account(username: String, password: String, salt: String)
 
 object Account extends SQLSyntaxSupport[Account] {
   override lazy val tableName = "accounts"

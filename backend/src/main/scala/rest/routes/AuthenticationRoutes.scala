@@ -48,7 +48,7 @@ trait AuthenticationRoutes extends Directives with JsonSupport with LazyLogging 
           entity(as[LoginForm]) { body =>
             onComplete(AuthenticationHandler.authenticate(body.username, body.password)) {
               case Success(Some(user)) =>
-                setSession(oneOff, usingHeaders, SessionData(user.username, user.companyID, user.expiryDate, user.role)) { ctx =>
+                setSession(oneOff, usingHeaders, SessionData(user.username, user.expiryDate, user.role)) { ctx =>
                   ctx.complete("ok")
                 }
 

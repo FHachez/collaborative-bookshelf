@@ -10,15 +10,15 @@ object ResourceHandler {
 
   val dataFolder = ConfigFactory.load().getString("resources.dataFolder")
 
-  def getEidImage(companyID: Long, fileName: String): Future[Array[Byte]] = {
+  def getEidImage(fileName: String): Future[Array[Byte]] = {
     Future {
-      Files.readAllBytes(Paths.get(s"$dataFolder/$companyID/$fileName"))
+      Files.readAllBytes(Paths.get(s"$dataFolder/$fileName"))
     }
   }
 
-  def getEidPath(companyID: Long, fileName: String): Future[Path] = {
+  def getEidPath(fileName: String): Future[Path] = {
     Future[Path] {
-      Paths.get(s"$dataFolder/$companyID/$fileName")
+      Paths.get(s"$dataFolder/$fileName")
     }
   }
 

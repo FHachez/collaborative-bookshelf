@@ -32,7 +32,7 @@ object WebServer extends Directives with BaseRoutes with AuthenticationRoutes {
 
   Database.init
 
-  implicit val system = ActorSystem("be-system")
+  implicit val system = ActorSystem("cb-system")
   implicit val materializer = ActorMaterializer()
   // needed for the future flatMap/onComplete in the end
   implicit val executionContext = system.dispatcher
@@ -41,11 +41,17 @@ object WebServer extends Directives with BaseRoutes with AuthenticationRoutes {
 
     val bindingFuture = Http().bindAndHandle(routes, "localhost", 8081)
 
+    // Starting database connection
+    Database.init
+
     println(s"Server online at http://localhost:8081/\nPress RETURN to stop...")
     StdIn.readLine() // let it run until user presses return
     bindingFuture
       .flatMap(_.unbind()) // trigger unbinding from the port
-      .onComplete(_ => system.terminate()) // and shutdown when done
+      .onComplete(_ => {
+        system.terminate
+        Database.stop
+      }) // and shutdown when done
   }
 
   /*
@@ -60,8 +66,7 @@ object WebServer extends Directives with BaseRoutes with AuthenticationRoutes {
 
   val corsSettings = CorsSettings.defaultSettings.copy(
     allowGenericHttpRequests = true,
-    allowedOrigins = HttpOriginRange(
-      HttpOrigin("http://localhost:3000")),
+    allowedOrigins = HttpOriginRange(),
     exposedHeaders = List("set-authorization"))
 
   val rejectionHandler = corsRejectionHandler withFallback RejectionHandler.default
@@ -85,9 +90,9 @@ object WebServer extends Directives with BaseRoutes with AuthenticationRoutes {
 
               } else {
 
-                new GraphqlRoutes(session.username, session.companyID).graphqlRoutes ~
-                  new ResourceRoutes(session.companyID).resourceRoutes ~
-                  new UploadRoutes(session.companyID).uploadRoutes
+                new GraphqlRoutes(session.username).graphqlRoutes ~
+                  new ResourceRoutes().resourceRoutes ~
+                  new UploadRoutes().uploadRoutes
               }
             }
         }

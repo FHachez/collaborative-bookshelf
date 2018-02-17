@@ -1,7 +1,9 @@
 package graphql.resolvers
 
-class RootResolver(username: String, companyID: Long) {
+class RootResolver(username: String) {
 
-  def client = new ClientResolver(companyID)
+  def query = new QueryResolver(username)
+
+  def mutation = new MutationResolver(username)
 
 }

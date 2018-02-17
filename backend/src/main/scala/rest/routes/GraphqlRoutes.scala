@@ -13,7 +13,7 @@ import spray.json.{ JsObject, JsString, JsValue }
 
 import scala.util.{ Failure, Success }
 
-class GraphqlRoutes(username: String, companyID: Long) extends JsonSupport {
+class GraphqlRoutes(username: String) extends JsonSupport {
 
   val graphqlRoutes: Route =
     path("graphql") {
@@ -38,7 +38,7 @@ class GraphqlRoutes(username: String, companyID: Long) extends JsonSupport {
 
             // query parsed successfully, time to execute it!
             case Success(queryAst) =>
-              onComplete(GraphqlExecutor.execute(queryAst, operation, vars, username, companyID)) {
+              onComplete(GraphqlExecutor.execute(queryAst, operation, vars, username)) {
 
                 case Success(responseJson) =>
                   complete(responseJson.prettyPrint)

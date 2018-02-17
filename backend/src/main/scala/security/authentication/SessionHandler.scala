@@ -3,7 +3,7 @@ package security.authentication
 import com.softwaremill.session._
 import org.json4s.JValue
 
-case class SessionData(username: String, companyID: Long, expiryDate: String, role: String)
+case class SessionData(username: String, expiryDate: String, role: String)
 
 object SessionHandler {
 

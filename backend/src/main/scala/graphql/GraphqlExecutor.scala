@@ -2,7 +2,7 @@ package graphql
 
 import com.typesafe.scalalogging.LazyLogging
 import graphql.resolvers.RootResolver
-import graphql.schemas.RootSchema.PtSchema
+import graphql.schemas.RootSchema.CbSchema
 import sangria.ast.Document
 import sangria.execution.Executor
 import spray.json.{ JsObject, JsValue }
@@ -13,12 +13,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object GraphqlExecutor extends LazyLogging {
 
-  def execute(queryAst: Document, operation: Option[String], vars: JsObject, username: String, companyID: Long): Future[JsValue] = {
+  def execute(queryAst: Document, operation: Option[String], vars: JsObject, username: String): Future[JsValue] = {
 
     Executor.execute(
-      PtSchema,
+      CbSchema,
       queryAst,
-      userContext = new RootResolver(username, companyID),
+      userContext = new RootResolver(username),
       variables = vars,
       operationName = operation)
   }

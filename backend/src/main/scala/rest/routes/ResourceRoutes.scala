@@ -7,7 +7,7 @@ import resources.ResourceHandler
 
 import scala.util.{ Failure, Success }
 
-class ResourceRoutes(companyID: Long) extends Directives {
+class ResourceRoutes() extends Directives {
 
   val resourceRoutes: Route =
     pathPrefix("resources") {
@@ -15,7 +15,7 @@ class ResourceRoutes(companyID: Long) extends Directives {
       pathPrefix("eid") {
         path("""(.+)\.jpg""".r) { matched =>
           get {
-            onComplete(ResourceHandler.getEidImage(companyID, s"$matched.jpg")) {
+            onComplete(ResourceHandler.getEidImage(s"$matched.jpg")) {
               case Success(image) =>
                 complete(HttpResponse(entity = HttpEntity(MediaTypes.`image/jpeg`, image)))
               case Failure(e) =>
