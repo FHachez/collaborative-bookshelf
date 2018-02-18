@@ -16,39 +16,36 @@ class BookResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
     Database.stop
   }
 
-  behavior of "ClientResolver"
+  behavior of "BookResolver"
 
-  it should "return a BooleanType of true for mutation *addClient*" in {
+  it should "return a BooleanType of true for mutation *addBook*" in {
 
     val jsonQuery =
       """{
         |	"query":
-        |   "mutation root($firstName: String!, $middleName: String, $lastName: String!, $gender: String!,
-        |                  $dateOfBirth: Date!, $placeOfBirth: String!, $nationalNumber: String!, $nationality: String!,
-        |                  $municipality: String!, $zipCode: String!, $streetName: String!, $number: String!)
+        |   "mutation root($title: String!, $subTitle: String, $authors: [String!]!, $publisher: String,
+        |                  $publishedAt: Date, $description: String, $categories: [String!]!, $thumbnail: String,
+        |                  $language: String, $status: String, $goodReadsID: String, $goodReadsRatingsAvg: Float,
+        |                  $goodReadsRatingsCount: Int)
         |    {
-        |       client {
-        |       add(
-        |         firstName: $firstName, middleName: $middleName, lastName: $lastName, gender: $gender,
-        |         dateOfBirth: $dateOfBirth, placeOfBirth: $placeOfBirth, nationalNumber: $nationalNumber,
-        |         nationality: $nationality, municipality: $municipality, zipCode: $zipCode,
-        |         streetName: $streetName, number: $number
-        |       )
-        |     }
+        |       book {
+        |         add(
+        |           title: $title, subTitle: $subTitle, authors: $authors, publisher: $publisher,
+        |           publishedAt: $publishedAt, description: $description, categories: $categories,
+        |           thumbnail: $thumbnail, language: $language, status: $status, goodReadsID: $goodReadsID,
+        |           goodReadsRatingsAvg: $goodReadsRatingsAvg, goodReadsRatingsCount: $goodReadsRatingsCount
+        |         )
+        |       }
         |   }",
         |	"variables": {
-        |
-        | },
-        |	"operationName": "root"
+        |    "title": "Harry Potter", "subTitle": "Phoenix", "authors": [], "publishedAt": "1993-10-16",
+        |    "categories": ["J", "K", "Rowling"], "goodReadsRatingsAvg": 4.7, "goodReadsRatingsCount": 4000
+        | }
         |}""".stripMargin.replaceAll("\n", "").replaceAll("\\s+", " ")
 
     val JsObject(fields) = JsonParser(jsonQuery)
 
     val JsString(query) = fields("query")
-
-    val operation = fields.get("operationName") collect {
-      case JsString(op) => op
-    }
 
     val vars = fields.get("variables") match {
       case Some(obj: JsObject) => obj
@@ -59,7 +56,7 @@ class BookResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
       """
       {
         "data": {
-          "client": {
+          "book": {
             "add": true
           }
         }
@@ -67,7 +64,7 @@ class BookResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
       """.stripMargin
     )
 
-    GraphqlExecutor.execute(QueryParser.parse(query).get, operation, vars, "", 1).map { response =>
+    GraphqlExecutor.execute(QueryParser.parse(query).get, Some("root"), vars, "").map { response =>
       response should be (expectedResponse)
     }
   }

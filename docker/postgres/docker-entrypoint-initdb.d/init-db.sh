@@ -2,11 +2,7 @@
 
 chmod -R +x ./docker-scripts-initdb.d
 
-scripts=( 
-    "init-companies-table.sql"  
-    "init-accounts-table.sql" 
-    "init-clients-table.sql"
-)
+scripts=()
 
 for script in "${scripts[@]}"
 do
