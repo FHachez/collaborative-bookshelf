@@ -1,18 +1,13 @@
 package graphql.resolvers
 
-import java.time.LocalDate
-
 import com.typesafe.scalalogging.LazyLogging
-import graphql.types.{ Book, BookTable }
+import graphql.types.Book
 import sangria.macros.derive._
-import scalikejdbc._
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class QueryResolver(username: String) extends LazyLogging {
 
   @GraphQLField
-  def book(id: String): Future[Book] = ???
+  def book(id: Long): Future[Option[Book]] = new BookResolver(username).get(id)
 
 }

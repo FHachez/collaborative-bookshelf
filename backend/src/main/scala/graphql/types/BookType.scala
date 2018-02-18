@@ -10,7 +10,7 @@ import scalikejdbc._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-case class Book(title: String, subTitle: Option[String], authors: Seq[String],
+case class Book(id: Long, title: String, subTitle: Option[String], authors: Seq[String],
   publisher: Option[String], publishedAt: Option[LocalDate], description: Option[String],
   categories: Seq[String], thumbnail: Option[String], language: Option[String], status: Option[String],
   goodReadsID: Option[String], goodReadsRatingsAvg: Option[Double], goodReadsRatingsCount: Option[Int])
@@ -56,21 +56,40 @@ object BookTable extends SQLSyntaxSupport[Book] {
     query.execute.apply
   }
 
+  val b = this.syntax("b")
+
   override val tableName = "books"
 
   override val columns = autoColumns[Book]()
 
   def arrayToList[T](array: java.sql.Array): List[T] = {
-    array.getArray().asInstanceOf[List[T]]
+    array.getArray().asInstanceOf[Array[T]].toList
   }
 
-  def apply(b: ResultName[Book])(rs: WrappedResultSet): Book = {
+  def apply(rs: WrappedResultSet): Book = {
     // autoConstruct(rs, b)
+    val bookColumns = b.resultName
+
     Book(
-      rs.string(b.title), rs.stringOpt(b.subTitle), arrayToList[String](rs.array(b.authors)), rs.stringOpt(b.publisher),
-      rs.localDateOpt(b.publishedAt), rs.stringOpt(b.description), arrayToList[String](rs.array(b.categories)),
-      rs.stringOpt(b.thumbnail), rs.stringOpt(b.language), rs.stringOpt(b.status), rs.stringOpt(b.goodReadsID),
-      rs.doubleOpt(b.goodReadsRatingsAvg), rs.intOpt(b.goodReadsRatingsCount))
+      rs.long(bookColumns.id), rs.string(bookColumns.title), rs.stringOpt(bookColumns.subTitle),
+      arrayToList[String](rs.array(bookColumns.authors)), rs.stringOpt(bookColumns.publisher),
+      rs.localDateOpt(bookColumns.publishedAt), rs.stringOpt(bookColumns.description),
+      arrayToList[String](rs.array(bookColumns.categories)), rs.stringOpt(bookColumns.thumbnail),
+      rs.stringOpt(bookColumns.language), rs.stringOpt(bookColumns.status), rs.stringOpt(bookColumns.goodReadsID),
+      rs.doubleOpt(bookColumns.goodReadsRatingsAvg), rs.intOpt(bookColumns.goodReadsRatingsCount))
+  }
+
+  def get(id: Long): Future[Option[Book]] = {
+    Future {
+      val query =
+        sql"""
+           SELECT ${b.result.*}
+           FROM ${BookTable as b}
+           WHERE id = $id
+         """
+
+      query.map(BookTable(_)).first.apply
+    }
   }
 
   def insert(book: Book): Future[Boolean] = {

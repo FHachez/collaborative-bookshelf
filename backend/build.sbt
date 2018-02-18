@@ -3,6 +3,8 @@ import sbt.Keys.{initialize, scalacOptions}
 lazy val akkaHttpVersion = "10.0.11"
 lazy val akkaVersion    = "2.5.9"
 
+parallelExecution in Test := false
+
 lazy val root = (project in file(".")).
   settings(
     inThisBuild(List(

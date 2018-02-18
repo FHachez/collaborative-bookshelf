@@ -8,6 +8,8 @@ import spray.json.{JsObject, JsString, JsonParser}
 
 class BookResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll with LazyLogging {
 
+  //TODO: Test are dependent on each other due to database operations. Should become independent!
+
   override def beforeAll {
     Database.init
   }
@@ -38,8 +40,8 @@ class BookResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
         |       }
         |   }",
         |	"variables": {
-        |    "title": "Harry Potter", "subTitle": "Phoenix", "authors": [], "publishedAt": "1993-10-16",
-        |    "categories": ["J", "K", "Rowling"], "goodReadsRatingsAvg": 4.7, "goodReadsRatingsCount": 4000
+        |    "title": "Harry Potter", "subTitle": "Phoenix", "authors": ["J", "K", "Rowling"], "publishedAt": "1993-10-16",
+        |    "categories": [], "goodReadsRatingsAvg": 4.7, "goodReadsRatingsCount": 4000
         | }
         |}""".stripMargin.replaceAll("\n", "").replaceAll("\\s+", " ")
 
@@ -58,6 +60,52 @@ class BookResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
         "data": {
           "book": {
             "add": true
+          }
+        }
+      }
+      """.stripMargin
+    )
+
+    GraphqlExecutor.execute(QueryParser.parse(query).get, Some("root"), vars, "").map { response =>
+      response should be (expectedResponse)
+    }
+  }
+
+  it should "return a Book for query *getBook*" in {
+
+    val jsonQuery =
+      """{
+        |	"query":
+        |   "query root($id: Long!)
+        |    {
+        |       book(id: $id) {
+        |         title,
+        |         categories,
+        |         publishedAt
+        |       }
+        |   }",
+        |	"variables": {
+        |    "id": 1
+        | }
+        |}""".stripMargin.replaceAll("\n", "").replaceAll("\\s+", " ")
+
+    val JsObject(fields) = JsonParser(jsonQuery)
+
+    val JsString(query) = fields("query")
+
+    val vars = fields.get("variables") match {
+      case Some(obj: JsObject) => obj
+      case _ => JsObject.empty
+    }
+
+    val expectedResponse = JsonParser(
+      """
+      {
+        "data": {
+          "book": {
+            "title": "Harry Potter",
+            "categories": [],
+            "publishedAt": "1993-10-16"
           }
         }
       }
