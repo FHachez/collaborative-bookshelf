@@ -78,7 +78,7 @@ if (env === 'production') {
 plugins.push(new webpack.LoaderOptionsPlugin(loaderOptionsConfig));
 
 export default Object.assign({
-  entry: ['whatwg-fetch', './src/js/index.js'],
+  entry: ['whatwg-fetch', './src/js/index.jsx'],
   output: {
     path: path.resolve('./dist'),
     filename: 'index.js',
