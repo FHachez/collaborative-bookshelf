@@ -10,7 +10,7 @@ import scalikejdbc._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class BookResolver(username: String) extends LazyLogging {
+class BookResolver() extends LazyLogging {
 
   implicit val session = AutoSession
 
