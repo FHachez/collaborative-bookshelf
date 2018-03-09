@@ -109,20 +109,6 @@ object BookTable extends SQLSyntaxSupport[Book] {
 
   def insert(book: Book): Future[Boolean] = {
 
-//    Future {
-//      val query =
-//        withSQL {
-//          insert.into(BookTable).values(
-//            book.productIterator.toList: _*)
-//        }
-//
-//      query.update.apply match {
-//        case 1 => true
-//        case _ => false
-//      }
-//
-//    }
-
     val query =
       sql"""
       INSERT INTO ${BookTable.table} (

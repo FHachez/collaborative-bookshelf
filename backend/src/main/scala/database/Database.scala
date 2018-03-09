@@ -1,6 +1,6 @@
 package database
 
-import graphql.types.BookTable
+import graphql.types.{BookTable, UserTable}
 import scalikejdbc.config._
 
 object Database {
@@ -15,6 +15,7 @@ object Database {
 
   private def createTables: Unit = {
     BookTable.createTable
+    UserTable.createTable
   }
 
 }
