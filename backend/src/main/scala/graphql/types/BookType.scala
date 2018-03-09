@@ -85,10 +85,25 @@ object BookTable extends SQLSyntaxSupport[Book] {
         sql"""
            SELECT ${b.result.*}
            FROM ${BookTable as b}
-           WHERE id = $id
+           WHERE ${column.id} = $id
          """
 
       query.map(BookTable(_)).first.apply
+    }
+  }
+
+  def exists(title: String): Boolean = {
+    val query =
+      sql"""
+        SELECT ${b.result.*}
+        FROM ${BookTable as b}
+        WHERE ${column.title} = ${title}
+        LIMIT 1
+      """
+
+    query.map(BookTable(_)).first.apply match {
+      case Some(_) => true
+      case _ => false
     }
   }
 
@@ -141,6 +156,7 @@ object BookTable extends SQLSyntaxSupport[Book] {
         ${book.goodReadsRatingsCount}
       )
       """
+
     Future {
       query.update.apply match {
         case 1 => true
@@ -148,4 +164,35 @@ object BookTable extends SQLSyntaxSupport[Book] {
       }
     }
   }
+
+  def update(book: Book): Future[Boolean] = {
+
+    val query =
+      sql"""
+      UPDATE ${BookTable.table}
+      SET
+        ${column.title} = ${book.title},
+        ${column.subTitle} = ${book.subTitle},
+        ${column.authors} = ARRAY[${book.authors}]::text[],
+        ${column.publisher} = ${book.publisher},
+        ${column.publishedAt} = ${book.publishedAt},
+        ${column.description} = ${book.description},
+        ${column.categories} = ARRAY[${book.categories}]::text[],
+        ${column.thumbnail} = ${book.thumbnail},
+        ${column.language} = ${book.language},
+        ${column.status} = ${book.status},
+        ${column.goodReadsID} = ${book.goodReadsID},
+        ${column.goodReadsRatingsAvg} = ${book.goodReadsRatingsAvg},
+        ${column.goodReadsRatingsCount} = ${book.goodReadsRatingsCount}
+      WHERE ${column.id} = ${book.id}
+      """
+
+    Future {
+      query.update.apply match {
+        case 1 => true
+        case _ => false
+      }
+    }
+  }
+
 }

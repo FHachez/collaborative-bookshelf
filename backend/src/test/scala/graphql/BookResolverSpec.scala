@@ -116,4 +116,106 @@ class BookResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
       response should be (expectedResponse)
     }
   }
+
+  it should "fail as the Book already exists for query *addBook*" in {
+
+    val jsonQuery =
+      """{
+        |	"query":
+        |   "mutation root($title: String!, $subTitle: String, $authors: [String!]!, $publisher: String,
+        |                  $publishedAt: Date, $description: String, $categories: [String!]!, $thumbnail: String,
+        |                  $language: String, $status: String, $goodReadsID: String, $goodReadsRatingsAvg: Float,
+        |                  $goodReadsRatingsCount: Int)
+        |    {
+        |       book {
+        |         add(
+        |           title: $title, subTitle: $subTitle, authors: $authors, publisher: $publisher,
+        |           publishedAt: $publishedAt, description: $description, categories: $categories,
+        |           thumbnail: $thumbnail, language: $language, status: $status, goodReadsID: $goodReadsID,
+        |           goodReadsRatingsAvg: $goodReadsRatingsAvg, goodReadsRatingsCount: $goodReadsRatingsCount
+        |         )
+        |       }
+        |   }",
+        |	"variables": {
+        |    "title": "Harry Potter", "subTitle": "Phoenix", "authors": ["J", "K", "Rowling"], "publishedAt": "1993-10-16",
+        |    "categories": [], "goodReadsRatingsAvg": 4.7, "goodReadsRatingsCount": 4000
+        | }
+        |}""".stripMargin.replaceAll("\n", "").replaceAll("\\s+", " ")
+
+    val JsObject(fields) = JsonParser(jsonQuery)
+
+    val JsString(query) = fields("query")
+
+    val vars = fields.get("variables") match {
+      case Some(obj: JsObject) => obj
+      case _ => JsObject.empty
+    }
+
+    val expectedResponse = JsonParser(
+      """
+      {
+        "data": {
+          "book": {
+            "add": false
+          }
+        }
+      }
+      """.stripMargin
+    )
+
+    GraphqlExecutor.execute(QueryParser.parse(query).get, Some("root"), vars, "").map { response =>
+      response should be (expectedResponse)
+    }
+  }
+
+  it should "update the Book for query *updateBook*" in {
+
+    val jsonQuery =
+      """{
+        |	"query":
+        |   "mutation root($id: Long!, $title: String!, $subTitle: String, $authors: [String!]!, $publisher: String,
+        |                  $publishedAt: Date, $description: String, $categories: [String!]!, $thumbnail: String,
+        |                  $language: String, $status: String, $goodReadsID: String, $goodReadsRatingsAvg: Float,
+        |                  $goodReadsRatingsCount: Int)
+        |    {
+        |       book {
+        |         update(
+        |           id: $id, title: $title, subTitle: $subTitle, authors: $authors, publisher: $publisher,
+        |           publishedAt: $publishedAt, description: $description, categories: $categories,
+        |           thumbnail: $thumbnail, language: $language, status: $status, goodReadsID: $goodReadsID,
+        |           goodReadsRatingsAvg: $goodReadsRatingsAvg, goodReadsRatingsCount: $goodReadsRatingsCount
+        |         )
+        |       }
+        |   }",
+        |	"variables": {
+        |    "id": 1, "title": "Harry Potter", "subTitle": "Phoenix", "authors": ["J", "K", "Rowling"],
+        |    "publishedAt": "1993-10-16", "categories": [], "goodReadsRatingsAvg": 4.7, "goodReadsRatingsCount": 4000
+        | }
+        |}""".stripMargin.replaceAll("\n", "").replaceAll("\\s+", " ")
+
+    val JsObject(fields) = JsonParser(jsonQuery)
+
+    val JsString(query) = fields("query")
+
+    val vars = fields.get("variables") match {
+      case Some(obj: JsObject) => obj
+      case _ => JsObject.empty
+    }
+
+    val expectedResponse = JsonParser(
+      """
+      {
+        "data": {
+          "book": {
+            "update": true
+          }
+        }
+      }
+      """.stripMargin
+    )
+
+    GraphqlExecutor.execute(QueryParser.parse(query).get, Some("root"), vars, "").map { response =>
+      response should be (expectedResponse)
+    }
+  }
 }
