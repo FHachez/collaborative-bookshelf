@@ -1,0 +1,26 @@
+version: '3'
+services:
+
+    cb-pg-db:
+        image: postgres:9.6.3
+        container_name: cb-pg-db
+        restart: on-failure
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=cb-pg-db
+            - PGDATA=/cb/postgresql/data/pgdata
+        volumes:
+            - cb-pg-db:/cb/postgresql/data
+            - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+            - ./docker-scripts-initdb.d:/docker-scripts-initdb.d
+        ports:
+            - "5432:5432"
+
+volumes:
+    cb-pg-db: {}
+
+networks:
+  default:
+    external:
+      name: cb

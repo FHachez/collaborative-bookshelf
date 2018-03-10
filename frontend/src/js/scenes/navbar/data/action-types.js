@@ -1,0 +1,3 @@
+const TOGGLE_NAVBAR = 'TOGGLE_NAVBAR';
+
+export default TOGGLE_NAVBAR;

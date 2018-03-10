@@ -1,0 +1,58 @@
+{
+  "extends": [
+    "airbnb",
+    "plugin:flowtype/recommended",
+    "plugin:react/recommended"
+  ],
+  "parser": "babel-eslint",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "ecmaVersion": 7,
+      "jsx": true
+    }
+  },
+  "plugins": [
+    "react",
+    "jsx-a11y",
+    "import",
+    "flowtype"
+  ],
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true
+  },
+  "globals": {
+    "it": true,
+    "expect": true,
+    "describe": true,
+    "jest": true,
+    "document": true,
+    "test": true,
+    "window": true,
+    "fetch": true,
+    "WebSocket": true,
+    "alert": true
+  },
+  "rules": {
+    "import/no-dynamic-require": 0,
+    "jsx-quotes": ["error", "prefer-single"],
+    "no-underscore-dangle": 0,
+    "comma-dangle": 0,
+    "global-require": 0,
+    "no-multi-spaces": "error",
+    "padded-blocks": "error",
+    "function-paren-newline": 0
+  },
+  "settings": {
+    "flowtype": {
+      "onlyFilesWithFlowAnnotation": true
+    },
+    "react": {
+      "createClass": "createClass", // Regex for Component Factory to use, default to "createClass"
+      "pragma": "React",  // Pragma to use, default to "React"
+      "version": "15.6" // React version, default to the latest React stable release
+    }
+
+  }
+}
