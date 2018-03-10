@@ -1,7 +1,6 @@
 package graphql.resolvers
 
-import java.time.LocalDate
-
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import graphql.types.{User, UserTable}
 import sangria.macros.derive._
@@ -19,40 +18,35 @@ class UserResolver() extends LazyLogging {
   }
 
   @GraphQLField
-  def add(title: String, subTitle: Option[String], authors: Seq[String],
-    publisher: Option[String], publishedAt: Option[LocalDate], description: Option[String],
-    categories: Seq[String], thumbnail: Option[String], language: Option[String], status: Option[String],
-    goodReadsID: Option[String], goodReadsRatingsAvg: Option[Double],
-    goodReadsRatingsCount: Option[Int]): Future[Boolean] = {
+  def add(email: String, firstName: String, lastName: Option[String]): Future[Boolean] = {
 
-    if(BookTable.exists(title)) {
+    val companyEmail = ConfigFactory.load().getString("company.valid-email")
+
+    if(!email.contains(companyEmail)) {
       return Future { false }
     }
 
-    val book = Book(
-      -1, title, subTitle, authors, publisher, publishedAt, description, categories, thumbnail,
-      language, status, goodReadsID, goodReadsRatingsAvg, goodReadsRatingsCount)
+    if(UserTable.exists(email)) {
+      return Future { false }
+    }
 
-    BookTable.insert(book)
+    val user = User(-1, email, firstName, lastName)
+
+    UserTable.insert(user)
 
   }
 
   @GraphQLField
-  def update(id: Long, title: String, subTitle: Option[String], authors: Seq[String],
-             publisher: Option[String], publishedAt: Option[LocalDate], description: Option[String],
-             categories: Seq[String], thumbnail: Option[String], language: Option[String], status: Option[String],
-             goodReadsID: Option[String], goodReadsRatingsAvg: Option[Double],
-             goodReadsRatingsCount: Option[Int]): Future[Boolean] = {
+  def update(id: Long, email: String, firstName: String, lastName: Option[String]): Future[Boolean] = {
 
-    if(!BookTable.exists(title)) {
+    if(!UserTable.exists(email)) {
       return Future { false }
     }
 
-    val book = Book(
-      id, title, subTitle, authors, publisher, publishedAt, description, categories, thumbnail,
-      language, status, goodReadsID, goodReadsRatingsAvg, goodReadsRatingsCount)
+    val user = User(
+      id, email, firstName, lastName)
 
-    BookTable.update(book)
+    UserTable.update(user)
 
   }
 

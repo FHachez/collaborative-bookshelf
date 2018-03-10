@@ -18,30 +18,23 @@ class UserResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
     Database.stop
   }
 
-  behavior of "BookResolver"
+  behavior of "UserResolver"
 
-  it should "return a BooleanType of true for mutation *addBook*" in {
+  it should "return a BooleanType of true for mutation *addUser*" in {
 
     val jsonQuery =
       """{
         |	"query":
-        |   "mutation root($title: String!, $subTitle: String, $authors: [String!]!, $publisher: String,
-        |                  $publishedAt: Date, $description: String, $categories: [String!]!, $thumbnail: String,
-        |                  $language: String, $status: String, $goodReadsID: String, $goodReadsRatingsAvg: Float,
-        |                  $goodReadsRatingsCount: Int)
+        |   "mutation root($email: String!, $firstName: String!, $lastName: String)
         |    {
-        |       book {
+        |       user {
         |         add(
-        |           title: $title, subTitle: $subTitle, authors: $authors, publisher: $publisher,
-        |           publishedAt: $publishedAt, description: $description, categories: $categories,
-        |           thumbnail: $thumbnail, language: $language, status: $status, goodReadsID: $goodReadsID,
-        |           goodReadsRatingsAvg: $goodReadsRatingsAvg, goodReadsRatingsCount: $goodReadsRatingsCount
+        |           email: $email, firstName: $firstName, lastName: $lastName
         |         )
         |       }
         |   }",
         |	"variables": {
-        |    "title": "Harry Potter", "subTitle": "Phoenix", "authors": ["J", "K", "Rowling"], "publishedAt": "1993-10-16",
-        |    "categories": [], "goodReadsRatingsAvg": 4.7, "goodReadsRatingsCount": 4000
+        |    "email": "milanvdm@riaktr.com", "firstName": "Milan", "lastName": "van der Meer"
         | }
         |}""".stripMargin.replaceAll("\n", "").replaceAll("\\s+", " ")
 
@@ -58,7 +51,7 @@ class UserResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
       """
       {
         "data": {
-          "book": {
+          "user": {
             "add": true
           }
         }
@@ -71,17 +64,17 @@ class UserResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
     }
   }
 
-  it should "return a Book for query *getBook*" in {
+  it should "return a User for query *getUser*" in {
 
     val jsonQuery =
       """{
         |	"query":
         |   "query root($id: Long!)
         |    {
-        |       book(id: $id) {
-        |         title,
-        |         categories,
-        |         publishedAt
+        |       user(id: $id) {
+        |         email,
+        |         firstName,
+        |         lastName
         |       }
         |   }",
         |	"variables": {
@@ -102,10 +95,10 @@ class UserResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
       """
       {
         "data": {
-          "book": {
-            "title": "Harry Potter",
-            "categories": [],
-            "publishedAt": "1993-10-16"
+          "user": {
+            "email": "milanvdm@riaktr.com",
+            "firstName": "Milan",
+            "lastName": "van der Meer"
           }
         }
       }
@@ -117,28 +110,21 @@ class UserResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
     }
   }
 
-  it should "fail as the Book already exists for query *addBook*" in {
+  it should "fail as the User already exists for query *addUser*" in {
 
     val jsonQuery =
       """{
         |	"query":
-        |   "mutation root($title: String!, $subTitle: String, $authors: [String!]!, $publisher: String,
-        |                  $publishedAt: Date, $description: String, $categories: [String!]!, $thumbnail: String,
-        |                  $language: String, $status: String, $goodReadsID: String, $goodReadsRatingsAvg: Float,
-        |                  $goodReadsRatingsCount: Int)
+        |   "mutation root($email: String!, $firstName: String!, $lastName: String)
         |    {
-        |       book {
+        |       user {
         |         add(
-        |           title: $title, subTitle: $subTitle, authors: $authors, publisher: $publisher,
-        |           publishedAt: $publishedAt, description: $description, categories: $categories,
-        |           thumbnail: $thumbnail, language: $language, status: $status, goodReadsID: $goodReadsID,
-        |           goodReadsRatingsAvg: $goodReadsRatingsAvg, goodReadsRatingsCount: $goodReadsRatingsCount
+        |           email: $email, firstName: $firstName, lastName: $lastName
         |         )
         |       }
         |   }",
         |	"variables": {
-        |    "title": "Harry Potter", "subTitle": "Phoenix", "authors": ["J", "K", "Rowling"], "publishedAt": "1993-10-16",
-        |    "categories": [], "goodReadsRatingsAvg": 4.7, "goodReadsRatingsCount": 4000
+        |    "email": "milanvdm@riaktr.com", "firstName": "Milan", "lastName": "van der Meer"
         | }
         |}""".stripMargin.replaceAll("\n", "").replaceAll("\\s+", " ")
 
@@ -155,7 +141,7 @@ class UserResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
       """
       {
         "data": {
-          "book": {
+          "user": {
             "add": false
           }
         }
@@ -168,28 +154,21 @@ class UserResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
     }
   }
 
-  it should "update the Book for query *updateBook*" in {
+  it should "update the User for query *updateUser*" in {
 
     val jsonQuery =
       """{
         |	"query":
-        |   "mutation root($id: Long!, $title: String!, $subTitle: String, $authors: [String!]!, $publisher: String,
-        |                  $publishedAt: Date, $description: String, $categories: [String!]!, $thumbnail: String,
-        |                  $language: String, $status: String, $goodReadsID: String, $goodReadsRatingsAvg: Float,
-        |                  $goodReadsRatingsCount: Int)
+        |   "mutation root($id: Long!, $email: String!, $firstName: String!, $lastName: String)
         |    {
-        |       book {
+        |       user {
         |         update(
-        |           id: $id, title: $title, subTitle: $subTitle, authors: $authors, publisher: $publisher,
-        |           publishedAt: $publishedAt, description: $description, categories: $categories,
-        |           thumbnail: $thumbnail, language: $language, status: $status, goodReadsID: $goodReadsID,
-        |           goodReadsRatingsAvg: $goodReadsRatingsAvg, goodReadsRatingsCount: $goodReadsRatingsCount
+        |           id: $id, email: $email, firstName: $firstName, lastName: $lastName
         |         )
         |       }
         |   }",
         |	"variables": {
-        |    "id": 1, "title": "Harry Potter", "subTitle": "Phoenix", "authors": ["J", "K", "Rowling"],
-        |    "publishedAt": "1993-10-16", "categories": [], "goodReadsRatingsAvg": 4.7, "goodReadsRatingsCount": 4000
+        |    "id": 1, "email": "milanvdm@riaktr.com", "firstName": "Milan", "lastName": "van der Meer"
         | }
         |}""".stripMargin.replaceAll("\n", "").replaceAll("\\s+", " ")
 
@@ -206,7 +185,7 @@ class UserResolverSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAl
       """
       {
         "data": {
-          "book": {
+          "user": {
             "update": true
           }
         }

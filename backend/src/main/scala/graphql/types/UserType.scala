@@ -82,10 +82,18 @@ object UserTable extends SQLSyntaxSupport[User] {
 
     Future {
       val query =
-        withSQL {
-          insertInto(UserTable).values(
-            user.productIterator.toList: _*)
-        }
+        sql"""
+          INSERT INTO ${UserTable.table} (
+            ${column.email},
+            ${column.firstName},
+            ${column.lastName}
+          )
+          VALUES (
+            ${user.email},
+            ${user.firstName},
+            ${user.lastName}
+          )
+        """
 
       query.update.apply match {
         case 1 => true
