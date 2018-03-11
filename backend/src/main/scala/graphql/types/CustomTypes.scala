@@ -3,13 +3,25 @@ package graphql.types
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import anorm.{ParameterMetaData, ToStatement}
 import sangria.schema.ScalarType
 import sangria.validation.ValueCoercionViolation
 import sangria.ast
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 object CustomTypes {
+
+  implicit val localDateToStatement = new ToStatement[LocalDate] {
+    def set(s: java.sql.PreparedStatement, index: Int, aValue: LocalDate): Unit = {
+      s.setDate(index, java.sql.Date.valueOf(aValue))
+    }
+  }
+
+  implicit object LocalDateClassMetaData extends ParameterMetaData[LocalDate] {
+    val sqlType = ParameterMetaData.DateParameterMetaData.sqlType
+    val jdbcType = ParameterMetaData.DateParameterMetaData.jdbcType
+  }
 
   case object DateCoercionViolation extends ValueCoercionViolation("Date value expected")
 

@@ -4,127 +4,174 @@ import java.time.LocalDate
 
 import graphql.resolvers.{BookResolver, RootResolver}
 import CustomTypes._
-import sangria.macros.derive._
-import scalikejdbc._
+import sangria.macros.derive.{GraphQLField, _}
+import anorm._
+import anorm.SqlParser.{ get => parse }
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import database.Database.conn
 
-case class Book(id: Long, title: String, subTitle: Option[String], authors: Seq[String],
-  publisher: Option[String], publishedAt: Option[LocalDate], description: Option[String],
-  categories: Seq[String], thumbnail: Option[String], language: Option[String], status: Option[String],
-  goodReadsID: Option[String], goodReadsRatingsAvg: Option[Double], goodReadsRatingsCount: Option[Int])
+class Book(_id: Long, _title: String, _subTitle: Option[String], _authors: Seq[String],
+           _publisher: Option[String], _publishedAt: Option[LocalDate], _description: Option[String],
+           _categories: Seq[String], _thumbnail: Option[String], _language: Option[String],
+           _status: Option[String], _goodReadsID: Option[String], _goodReadsRatingsAvg: Option[Double],
+           _goodReadsRatingsCount: Option[Int]) {
+
+  @GraphQLField
+  def id = _id
+
+  @GraphQLField
+  def title = _title
+
+  @GraphQLField
+  def subTitle = _subTitle
+
+  @GraphQLField
+  def authors = _authors
+
+  @GraphQLField
+  def publisher = _publisher
+
+  @GraphQLField
+  def publishedAt = _publishedAt
+
+  @GraphQLField
+  def description = _description
+
+  @GraphQLField
+  def categories = _categories
+
+  @GraphQLField
+  def thumbnail = _thumbnail
+
+  @GraphQLField
+  def language = _language
+
+  @GraphQLField
+  def status = _status
+
+  @GraphQLField
+  def goodReadsID = _goodReadsID
+
+  @GraphQLField
+  def goodReadsRatingsAvg = _goodReadsRatingsAvg
+
+  @GraphQLField
+  def goodReadsRatingsCount = _goodReadsRatingsCount
+
+  @GraphQLField
+  def readBy(): String = {
+    println("Calling *readBy* function")
+    return "test"
+  }
+
+}
 
 object BookType {
 
   implicit val BookType = deriveObjectType[RootResolver, Book]()
 
   val BookMutationType = deriveContextObjectType[RootResolver, BookResolver, Unit](
-    _.mutation.book,
-    IncludeMethods("add"))
+    _.mutation.book)
 
 }
 
-object BookTable extends SQLSyntaxSupport[Book] {
-
-  implicit val session = AutoSession
+object BookTable {
 
   def createTable: Unit = {
     val query =
-      sql"""
+      SQL"""
          CREATE TABLE IF NOT EXISTS books (
-             id SERIAL NOT NULL,
-             title TEXT NOT NULL,
-             sub_title TEXT,
-             authors TEXT ARRAY NOT NULL,
-             publisher TEXT,
-             published_at DATE,
-             description TEXT ,
-             categories TEXT ARRAY NOT NULL,
-             thumbnail TEXT,
-             language TEXT,
-             status TEXT,
-             good_reads_id TEXT,
-             good_reads_ratings_avg DOUBLE PRECISION,
-             good_reads_ratings_count INTEGER,
-             PRIMARY KEY( id )
+           id SERIAL NOT NULL,
+           title TEXT NOT NULL,
+           sub_title TEXT,
+           authors TEXT ARRAY NOT NULL,
+           publisher TEXT,
+           published_at DATE,
+           description TEXT ,
+           categories TEXT ARRAY NOT NULL,
+           thumbnail TEXT,
+           language TEXT,
+           status TEXT,
+           good_reads_id TEXT,
+           good_reads_ratings_avg DOUBLE PRECISION,
+           good_reads_ratings_count INTEGER,
+           PRIMARY KEY( id )
          );
 
          CREATE INDEX IF NOT EXISTS books_id_idx ON books(id);
          """
 
-    query.execute.apply
+    query.executeInsert()
   }
 
-  val b = this.syntax("b")
+  def parser(): RowParser[Book] = {
 
-  override val tableName = "books"
+    for {
+      id <- parse[Long]("id")
+      title <- parse[String]("title")
+      subTitle <- parse[Option[String]]("sub_title")
+      authors <- parse[List[String]]("authors")
+      publisher <- parse[Option[String]]("publisher")
+      publishedAt <- parse[Option[LocalDate]]("published_at")
+      description <- parse[Option[String]]("description")
+      categories <- parse[List[String]]("categories")
+      thumbnail <- parse[Option[String]]("thumbnail")
+      language <- parse[Option[String]]("language")
+      status <- parse[Option[String]]("status")
+      goodReadsID <- parse[Option[String]]("good_reads_id")
+      goodReadsRatingsAvg <- parse[Option[Double]]("good_reads_ratings_avg")
+      goodReadsRatingsCount <- parse[Option[Int]]("good_reads_ratings_count")
+    } yield new Book(
+      id, title, subTitle, authors, publisher, publishedAt, description, categories, thumbnail,
+      language, status, goodReadsID, goodReadsRatingsAvg, goodReadsRatingsCount)
 
-  override val columns = autoColumns[Book]()
-
-  def arrayToList[T](array: java.sql.Array): List[T] = {
-    array.getArray().asInstanceOf[Array[T]].toList
-  }
-
-  def apply(rs: WrappedResultSet): Book = {
-    // autoConstruct(rs, b)
-    val bookColumns = b.resultName
-
-    Book(
-      rs.long(bookColumns.id), rs.string(bookColumns.title), rs.stringOpt(bookColumns.subTitle),
-      arrayToList[String](rs.array(bookColumns.authors)), rs.stringOpt(bookColumns.publisher),
-      rs.localDateOpt(bookColumns.publishedAt), rs.stringOpt(bookColumns.description),
-      arrayToList[String](rs.array(bookColumns.categories)), rs.stringOpt(bookColumns.thumbnail),
-      rs.stringOpt(bookColumns.language), rs.stringOpt(bookColumns.status), rs.stringOpt(bookColumns.goodReadsID),
-      rs.doubleOpt(bookColumns.goodReadsRatingsAvg), rs.intOpt(bookColumns.goodReadsRatingsCount))
   }
 
   def get(id: Long): Future[Option[Book]] = {
     Future {
       val query =
-        sql"""
-           SELECT ${b.result.*}
-           FROM ${BookTable as b}
-           WHERE ${column.id} = $id
+        SQL"""
+           SELECT *
+           FROM books
+           WHERE id = $id
          """
 
-      query.map(BookTable(_)).first.apply
+      query.as(parser().*).headOption
     }
   }
 
   def exists(title: String): Boolean = {
     val query =
-      sql"""
-        SELECT ${b.result.*}
-        FROM ${BookTable as b}
-        WHERE ${column.title} = ${title}
+      SQL"""
+        SELECT 1
+        FROM books
+        WHERE title = ${title}
         LIMIT 1
       """
 
-    query.map(BookTable(_)).first.apply match {
-      case Some(_) => true
-      case _ => false
-    }
+    query.executeQuery.resultSet.apply(_.isBeforeFirst())
   }
 
   def insert(book: Book): Future[Boolean] = {
 
     val query =
-      sql"""
-      INSERT INTO ${BookTable.table} (
-        ${column.title},
-        ${column.subTitle},
-        ${column.authors},
-        ${column.publisher},
-        ${column.publishedAt},
-        ${column.description},
-        ${column.categories},
-        ${column.thumbnail},
-        ${column.language},
-        ${column.status},
-        ${column.goodReadsID},
-        ${column.goodReadsRatingsAvg},
-        ${column.goodReadsRatingsCount}
+      SQL"""
+      INSERT INTO books (
+        title,
+        sub_title,
+        authors,
+        publisher,
+        published_at,
+        description,
+        categories,
+        thumbnail,
+        language,
+        status,
+        good_reads_id,
+        good_reads_ratings_avg,
+        good_reads_ratings_count
       )
       VALUES (
         ${book.title},
@@ -144,7 +191,7 @@ object BookTable extends SQLSyntaxSupport[Book] {
       """
 
     Future {
-      query.update.apply match {
+      query.executeUpdate() match {
         case 1 => true
         case _ => false
       }
@@ -154,27 +201,27 @@ object BookTable extends SQLSyntaxSupport[Book] {
   def update(book: Book): Future[Boolean] = {
 
     val query =
-      sql"""
-      UPDATE ${BookTable.table}
+      SQL"""
+      UPDATE books
       SET
-        ${column.title} = ${book.title},
-        ${column.subTitle} = ${book.subTitle},
-        ${column.authors} = ARRAY[${book.authors}]::text[],
-        ${column.publisher} = ${book.publisher},
-        ${column.publishedAt} = ${book.publishedAt},
-        ${column.description} = ${book.description},
-        ${column.categories} = ARRAY[${book.categories}]::text[],
-        ${column.thumbnail} = ${book.thumbnail},
-        ${column.language} = ${book.language},
-        ${column.status} = ${book.status},
-        ${column.goodReadsID} = ${book.goodReadsID},
-        ${column.goodReadsRatingsAvg} = ${book.goodReadsRatingsAvg},
-        ${column.goodReadsRatingsCount} = ${book.goodReadsRatingsCount}
-      WHERE ${column.id} = ${book.id}
+        title = ${book.title},
+        sub_title = ${book.subTitle},
+        authors = ARRAY[${book.authors}]::text[],
+        publisher = ${book.publisher},
+        published_at = ${book.publishedAt},
+        description = ${book.description},
+        categories = ARRAY[${book.categories}]::text[],
+        thumbnail = ${book.thumbnail},
+        language = ${book.language},
+        status = ${book.status},
+        good_reads_id = ${book.goodReadsID},
+        good_reads_ratings_avg = ${book.goodReadsRatingsAvg},
+        good_reads_ratings_count = ${book.goodReadsRatingsCount}
+      WHERE id = ${book.id}
       """
 
     Future {
-      query.update.apply match {
+      query.executeUpdate() match {
         case 1 => true
         case _ => false
       }

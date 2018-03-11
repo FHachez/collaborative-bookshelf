@@ -5,14 +5,11 @@ import java.time.LocalDate
 import com.typesafe.scalalogging.LazyLogging
 import graphql.types.{Book, BookTable}
 import sangria.macros.derive._
-import scalikejdbc._
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class BookResolver() extends LazyLogging {
-
-  implicit val session = AutoSession
 
   def get(id: Long): Future[Option[Book]] = {
     BookTable.get(id)
@@ -29,7 +26,7 @@ class BookResolver() extends LazyLogging {
       return Future { false }
     }
 
-    val book = Book(
+    val book = new Book(
       -1, title, subTitle, authors, publisher, publishedAt, description, categories, thumbnail,
       language, status, goodReadsID, goodReadsRatingsAvg, goodReadsRatingsCount)
 
@@ -48,7 +45,7 @@ class BookResolver() extends LazyLogging {
       return Future { false }
     }
 
-    val book = Book(
+    val book = new Book(
       id, title, subTitle, authors, publisher, publishedAt, description, categories, thumbnail,
       language, status, goodReadsID, goodReadsRatingsAvg, goodReadsRatingsCount)
 

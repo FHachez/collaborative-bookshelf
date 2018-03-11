@@ -1,7 +1,7 @@
 import sbt.Keys.{initialize, scalacOptions}
 
-lazy val akkaHttpVersion = "10.0.11"
-lazy val akkaVersion    = "2.5.9"
+lazy val akkaHttpVersion = "10.1.0"
+lazy val akkaVersion    = "2.5.11"
 
 parallelExecution in Test := false
 
@@ -11,6 +11,9 @@ lazy val root = (project in file(".")).
       organization    := "com.example",
       scalaVersion    := "2.12.4"
     )),
+
+    resolvers ++= Seq(
+      "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/"),
 
     name := "be",
     libraryDependencies ++= Seq(
@@ -27,18 +30,16 @@ lazy val root = (project in file(".")).
 
       "com.github.t3hnar"                   %% "scala-bcrypt"             % "3.1",
 
-      "org.scalikejdbc"                     %% "scalikejdbc"              % "3.2.1",
-      "org.scalikejdbc"                     %% "scalikejdbc-syntax-support-macro"      % "3.2.1",
-      "org.scalikejdbc"                     %% "scalikejdbc-config"       % "3.2.1",
-      "org.scalikejdbc"                     %% "scalikejdbc-test"         % "3.2.1",
       "org.postgresql"                      % "postgresql"                % "42.2.1",
+      "org.playframework.anorm"             %% "anorm"                    % "2.6.1",
+      "org.playframework.anorm"             %% "anorm-postgres"           % "2.6.1",
 
-      "org.sangria-graphql"                 %% "sangria"                  % "1.3.3",
+      "org.sangria-graphql"                 %% "sangria"                  % "1.4.0",
       "org.sangria-graphql"                 %% "sangria-spray-json"       % "1.0.1",
 
       "org.slf4j"                           % "slf4j-api"                 % "1.7.25",
       "ch.qos.logback"                      % "logback-classic"           % "1.2.3",
-      "com.typesafe.scala-logging"          %% "scala-logging"            % "3.7.2"
+      "com.typesafe.scala-logging"          %% "scala-logging"            % "3.8.0"
     ),
 
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint"),

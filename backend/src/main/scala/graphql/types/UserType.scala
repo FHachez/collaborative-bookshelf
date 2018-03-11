@@ -14,8 +14,7 @@ object UserType {
   implicit val UserType = deriveObjectType[RootResolver, User]()
 
   val  UserMutationType = deriveContextObjectType[RootResolver, UserResolver, Unit](
-    _.mutation.user,
-    IncludeMethods("add"))
+    _.mutation.user)
 
 }
 

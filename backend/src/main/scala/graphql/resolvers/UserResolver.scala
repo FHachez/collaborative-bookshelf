@@ -4,14 +4,11 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import graphql.types.{User, UserTable}
 import sangria.macros.derive._
-import scalikejdbc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class UserResolver() extends LazyLogging {
-
-  implicit val session = AutoSession
 
   def get(id: Long): Future[Option[User]] = {
     UserTable.get(id)
