@@ -1,0 +1,15 @@
+{
+  "presets": ["react", "flow", "airbnb",
+    ["env", {
+      "targets": {
+        "browsers": ["last 2 Chrome versions"]
+      }
+    }]
+  ],
+  "plugins": ["transform-object-rest-spread", "transform-do-expressions", "transform-function-bind", "transform-class-properties"],
+  "env": {
+    "development": {
+      "presets": ["react-hmre"]
+    }
+  }
+}
