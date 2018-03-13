@@ -1,0 +1,10 @@
+query
+  root($searchTerm: String!) {
+    medicines(query: $searchTerm) {
+      id,
+      cnk,
+      name,
+      dosageKindDescription,
+      activeIngredients
+    }
+  }
