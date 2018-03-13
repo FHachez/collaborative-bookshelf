@@ -12,53 +12,12 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import database.Database.conn
 
-class Book(_id: Long, _title: String, _subTitle: Option[String], _authors: Seq[String],
-           _publisher: Option[String], _publishedAt: Option[LocalDate], _description: Option[String],
-           _categories: Seq[String], _thumbnail: Option[String], _language: Option[String],
-           _status: Option[String], _goodReadsID: Option[String], _goodReadsRatingsAvg: Option[Double],
-           _goodReadsRatingsCount: Option[Int]) {
+case class Book(id: Long, title: String, subTitle: Option[String], authors: Seq[String],
+           publisher: Option[String], publishedAt: Option[LocalDate], description: Option[String],
+           categories: Seq[String], thumbnail: Option[String], language: Option[String],
+           status: Option[String], goodReadsID: Option[String], goodReadsRatingsAvg: Option[Double],
+           goodReadsRatingsCount: Option[Int]) {
 
-  @GraphQLField
-  def id = _id
-
-  @GraphQLField
-  def title = _title
-
-  @GraphQLField
-  def subTitle = _subTitle
-
-  @GraphQLField
-  def authors = _authors
-
-  @GraphQLField
-  def publisher = _publisher
-
-  @GraphQLField
-  def publishedAt = _publishedAt
-
-  @GraphQLField
-  def description = _description
-
-  @GraphQLField
-  def categories = _categories
-
-  @GraphQLField
-  def thumbnail = _thumbnail
-
-  @GraphQLField
-  def language = _language
-
-  @GraphQLField
-  def status = _status
-
-  @GraphQLField
-  def goodReadsID = _goodReadsID
-
-  @GraphQLField
-  def goodReadsRatingsAvg = _goodReadsRatingsAvg
-
-  @GraphQLField
-  def goodReadsRatingsCount = _goodReadsRatingsCount
 
   @GraphQLField
   def readBy(): String = {
@@ -123,7 +82,7 @@ object BookTable {
       goodReadsID <- parse[Option[String]]("good_reads_id")
       goodReadsRatingsAvg <- parse[Option[Double]]("good_reads_ratings_avg")
       goodReadsRatingsCount <- parse[Option[Int]]("good_reads_ratings_count")
-    } yield new Book(
+    } yield Book(
       id, title, subTitle, authors, publisher, publishedAt, description, categories, thumbnail,
       language, status, goodReadsID, goodReadsRatingsAvg, goodReadsRatingsCount)
 

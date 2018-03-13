@@ -3,14 +3,13 @@ package security.authentication
 import com.github.t3hnar.bcrypt._
 import security.authentication.Roles.ROLE._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
 import java.time.LocalDateTime
 
-import scalikejdbc._
 import com.typesafe.scalalogging.LazyLogging
-import security.types.{ Account, User }
-import security.types.Account.a
+import security.types.{ Account, User, AccountTable }
 
 object AuthenticationHandler extends LazyLogging {
 
@@ -18,53 +17,31 @@ object AuthenticationHandler extends LazyLogging {
 
   def authenticate(username: String, passwordToCheck: String): Future[Option[User]] = {
 
-    Future {
-      val query =
-        sql"""
-           SELECT ${a.result.*}
-           FROM ${Account as a}
-           WHERE username = $username
-         """
-
-      logger.info(query.toString)
-
-      val result: Option[Account] = DB.readOnly(implicit session =>
-        query.map(Account(_)).first.apply)
-
-      result match {
+      AccountTable.get(username).flatMap {
         case Some(Account(name, password, salt)) =>
           val hashedPassword = passwordToCheck.bcrypt(salt)
 
           if (hashedPassword == password) {
             val expiryDate = LocalDateTime.now().plusDays(daysUntilExpiry).toString
 
-            Some(User(name, expiryDate, BASIC_ROLE))
+            Future { Some(User(name, expiryDate, BASIC_ROLE)) }
           } else {
-            None
+            Future { None }
           }
 
-        case None => None
-
-      }
+        case None => Future { None }
     }
   }
 
-  def createUser(username: String, password: String): Future[_] = {
+  def createUser(username: String, password: String): Future[Boolean] = {
 
-    Future {
-      val salt = generateSalt
-      val hashedPassword = password.bcrypt(salt)
+    val salt = generateSalt
+    val hashedPassword = password.bcrypt(salt)
 
-      val query =
-        sql"""
-        INSERT INTO accounts (username, password, salt)
-        VALUES ($username, $hashedPassword, $salt)
-        """
+    val account = Account(username, hashedPassword, salt)
 
-      DB localTx { implicit session =>
-        query.update.apply
-      }
-    }
+    AccountTable.insert(account)
+
   }
 
   def isExpired(expiryDate: String): Boolean = {

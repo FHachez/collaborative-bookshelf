@@ -2,10 +2,13 @@ package graphql.types
 
 import graphql.resolvers.{ RootResolver, UserResolver}
 import sangria.macros.derive._
-import scalikejdbc._
+
+import anorm._
+import anorm.SqlParser.{ get => parse }
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import database.Database.conn
 
 case class User(id: Long, email: String, firstName: String, lastName: Option[String])
 
@@ -18,104 +21,99 @@ object UserType {
 
 }
 
-object UserTable extends SQLSyntaxSupport[User] {
-
-  implicit val session = AutoSession
+object UserTable {
 
   def createTable: Unit = {
     val query =
-      sql"""
-         CREATE TABLE IF NOT EXISTS users (
-             id SERIAL NOT NULL,
-             email TEXT NOT NULL,
-             first_name TEXT NOT NULL,
-             last_name TEXT,
-             PRIMARY KEY( id )
-         );
+      SQL"""
+       CREATE TABLE IF NOT EXISTS users (
+           id SERIAL NOT NULL,
+           email TEXT NOT NULL,
+           first_name TEXT NOT NULL,
+           last_name TEXT,
+           PRIMARY KEY( id )
+       );
 
-         CREATE INDEX IF NOT EXISTS users_id_idx ON users(id);
-         """
+       CREATE INDEX IF NOT EXISTS users_id_idx ON users(id);
+       """
 
-    query.execute.apply
+    query.executeInsert()
   }
 
-  val u = this.syntax("u")
+  def parser(): RowParser[User] = {
 
-  override val tableName = "users"
+    for {
+      id <- parse[Long]("id")
+      email <- parse[String]("email")
+      firstName <- parse[String]("first_name")
+      lastName <- parse[Option[String]]("last_name")
+    } yield User(id, email, firstName, lastName)
 
-  override val columns = autoColumns[User]()
-
-  def apply(rs: WrappedResultSet): User = {
-    autoConstruct(rs, u)
   }
 
   def get(id: Long): Future[Option[User]] = {
     Future {
       val query =
-        sql"""
-           SELECT ${u.result.*}
-           FROM ${UserTable as u}
-           WHERE ${column.id} = $id
+        SQL"""
+           SELECT *
+           FROM users
+           WHERE id = $id
          """
 
-      query.map(UserTable(_)).first.apply
+      query.as(parser().*).headOption
     }
   }
 
   def exists(email: String): Boolean = {
     val query =
-      sql"""
-        SELECT ${u.result.*}
-        FROM ${UserTable as u}
-        WHERE ${column.email} = ${email}
+      SQL"""
+        SELECT 1
+        FROM users
+        WHERE email = ${email}
         LIMIT 1
       """
 
-    query.map(UserTable(_)).first.apply match {
-      case Some(_) => true
-      case _ => false
-    }
+    query.executeQuery.resultSet.apply(_.isBeforeFirst())
   }
 
   def insert(user: User): Future[Boolean] = {
 
-    Future {
-      val query =
-        sql"""
-          INSERT INTO ${UserTable.table} (
-            ${column.email},
-            ${column.firstName},
-            ${column.lastName}
-          )
-          VALUES (
-            ${user.email},
-            ${user.firstName},
-            ${user.lastName}
-          )
-        """
+    val query =
+      SQL"""
+        INSERT INTO users (
+          email,
+          first_name,
+          last_name
+        )
+        VALUES (
+          ${user.email},
+          ${user.firstName},
+          ${user.lastName}
+        )
+      """
 
-      query.update.apply match {
-        case 1 => true
-        case _ => false
+      Future {
+        query.executeUpdate() match {
+          case 1 => true
+          case _ => false
+        }
       }
-
-    }
   }
 
   def update(user: User): Future[Boolean] = {
 
     val query =
-      sql"""
-      UPDATE ${UserTable.table}
+      SQL"""
+      UPDATE users
       SET
-        ${column.email} = ${user.email},
-        ${column.firstName} = ${user.firstName},
-        ${column.lastName} = ${user.lastName}
-      WHERE ${column.id} = ${user.id}
+        email = ${user.email},
+        first_name = ${user.firstName},
+        last_name = ${user.lastName}
+      WHERE id = ${user.id}
       """
 
     Future {
-      query.update.apply match {
+      query.executeUpdate() match {
         case 1 => true
         case _ => false
       }
